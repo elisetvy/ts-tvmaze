@@ -19,7 +19,59 @@ interface ShowObjectInterface {
 
 interface ShowDataInterface {
   score: number;
-  show: object;
+  show:  {
+    id: number;
+    url: string;
+    name: string;
+    type: string;
+    language: string;
+    genres: string[];
+    status: string;
+    runtime: number;
+    averageRuntime: number;
+    premiered: string;
+    ended: string;
+    officialSite: string;
+    schedule: {
+      time: string;
+      days: string[];
+    };
+    rating: {
+      average: number;
+    };
+    weight: number;
+    network: {
+      id: number;
+      name: string;
+      country: {
+        name: string;
+        code: string;
+        timezone: string;
+      }
+      officialSite: string;
+    };
+    webChannel: null;
+    dvdCountry: null;
+    externals: {
+      tvrage: number;
+      thetvdb: number;
+      imdb: string
+    };
+    image: {
+      medium: string;
+      original: string;
+    };
+    summary: string;
+    updated: number;
+    _links: {
+      self: {
+        href: string;
+      };
+      previousepisode: {
+        href: string;
+      }
+    };
+  }
 }
 
 
@@ -30,22 +82,23 @@ interface ShowDataInterface {
  *    (if no image URL given by API, put in a default image URL)
  */
 
-async function searchShowsByTerm(term: string | undefined): Promise<ShowObjectInterface[]> {
+async function searchShowsByTerm(term: string): Promise<ShowObjectInterface[]> {
   // ADD: Remove placeholder & make request to TVMaze search shows API.
   const response = await fetch(`${TV_MAZE_BASE_URL}/search/shows?q=${term}`);
 
-  const shows = await response.json();
+  const data = await response.json() as ShowDataInterface[];
 
-  return shows.map(showData => {
-    const show = showData.show;
-    return {
-      id: show.id,
-      name: show.name,
-      summary: show.summary,
-      image: show.image?.original || DEFAULT_IMAGE
-    };
+  const showsArr = data.map(show => {
+    const showObject: ShowObjectInterface = {
+    id: show.show.id,
+    name: show.show.name,
+    summary: show.show.summary,
+    image: show.show.image?.original || DEFAULT_IMAGE
+    }
+    return showObject;
   });
 
+  return showsArr;
 }
 
 
@@ -84,10 +137,15 @@ function populateShows(shows: ShowObjectInterface[]): void {
 
 async function searchForShowAndDisplay() {
   const term = $("#searchForm-term").val();
-  const shows = await searchShowsByTerm(term);
+
+  let shows: ShowObjectInterface[];
+
+  if (typeof term === "string") {
+    shows = await searchShowsByTerm(term);
+    populateShows(shows);
+  }
 
   $episodesArea.hide();
-  populateShows(shows);
 }
 
 $searchForm.on("submit", async function (evt) {
