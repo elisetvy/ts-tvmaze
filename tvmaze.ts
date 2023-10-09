@@ -1,6 +1,9 @@
 import axios from "axios";
 import jQuery from 'jquery';
 
+const TV_MAZE_BASE_URL = "https://api.tvmaze.com";
+const DEFAULT_IMAGE = "https://tinyurl.com/tv-missing";
+
 const $ = jQuery;
 
 const $showsList = $("#showsList");
@@ -14,6 +17,11 @@ interface ShowObjectInterface {
   image: string;
 }
 
+interface ShowDataInterface {
+  score: number;
+  show: object;
+}
+
 
 /** Given a search term, search for tv shows that match that query.
  *
@@ -24,35 +32,31 @@ interface ShowObjectInterface {
 
 async function searchShowsByTerm(term: string | undefined): Promise<ShowObjectInterface[]> {
   // ADD: Remove placeholder & make request to TVMaze search shows API.
-  return [
-    {
-      id: 1767,
-      name: "The Bletchley Circle",
-      summary:
-        `<p><b>The Bletchley Circle</b> follows the journey of four ordinary
-           women with extraordinary skills that helped to end World War II.</p>
-         <p>Set in 1952, Susan, Millie, Lucy and Jean have returned to their
-           normal lives, modestly setting aside the part they played in
-           producing crucial intelligence, which helped the Allies to victory
-           and shortened the war. When Susan discovers a hidden code behind an
-           unsolved murder she is met by skepticism from the police. She
-           quickly realises she can only begin to crack the murders and bring
-           the culprit to justice with her former friends.</p>`,
-      image:
-          "http://static.tvmaze.com/uploads/images/medium_portrait/147/369403.jpg"
-    }
-  ]
+  const response = await fetch(`${TV_MAZE_BASE_URL}/search/shows?q=${term}`);
+
+  const shows = await response.json();
+
+  return shows.map(showData => {
+    const show = showData.show;
+    return {
+      id: show.id,
+      name: show.name,
+      summary: show.summary,
+      image: show.image?.original || DEFAULT_IMAGE
+    };
+  });
+
 }
 
 
 /** Given list of shows, create markup for each and to DOM */
 
-async function populateShows(shows: ShowObjectInterface[]) {
+function populateShows(shows: ShowObjectInterface[]): void {
   $showsList.empty();
 
   for (let show of shows) {
     const $show = $(
-        `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
+      `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
            <img
               src="http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg"
@@ -69,7 +73,8 @@ async function populateShows(shows: ShowObjectInterface[]) {
        </div>
       `);
 
-    $showsList.append($show);  }
+    $showsList.append($show);
+  }
 }
 
 

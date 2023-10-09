@@ -10777,6 +10777,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 var jquery_1 = __importDefault(__webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js"));
+var TV_MAZE_BASE_URL = "https://api.tvmaze.com";
+var DEFAULT_IMAGE = "https://tinyurl.com/tv-missing";
 var $ = jquery_1.default;
 var $showsList = $("#showsList");
 var $episodesArea = $("#episodesArea");
@@ -10789,33 +10791,37 @@ var $searchForm = $("#searchForm");
  */
 function searchShowsByTerm(term) {
     return __awaiter(this, void 0, void 0, function () {
+        var response, shows;
         return __generator(this, function (_a) {
-            // ADD: Remove placeholder & make request to TVMaze search shows API.
-            return [2 /*return*/, [
-                    {
-                        id: 1767,
-                        name: "The Bletchley Circle",
-                        summary: "<p><b>The Bletchley Circle</b> follows the journey of four ordinary\n           women with extraordinary skills that helped to end World War II.</p>\n         <p>Set in 1952, Susan, Millie, Lucy and Jean have returned to their\n           normal lives, modestly setting aside the part they played in\n           producing crucial intelligence, which helped the Allies to victory\n           and shortened the war. When Susan discovers a hidden code behind an\n           unsolved murder she is met by skepticism from the police. She\n           quickly realises she can only begin to crack the murders and bring\n           the culprit to justice with her former friends.</p>",
-                        image: "http://static.tvmaze.com/uploads/images/medium_portrait/147/369403.jpg"
-                    }
-                ]];
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, fetch("".concat(TV_MAZE_BASE_URL, "/search/shows?q=").concat(term))];
+                case 1:
+                    response = _a.sent();
+                    return [4 /*yield*/, response.json()];
+                case 2:
+                    shows = _a.sent();
+                    return [2 /*return*/, shows.map(function (showData) {
+                            var _a;
+                            var show = showData.show;
+                            return {
+                                id: show.id,
+                                name: show.name,
+                                summary: show.summary,
+                                image: ((_a = show.image) === null || _a === void 0 ? void 0 : _a.original) || DEFAULT_IMAGE
+                            };
+                        })];
+            }
         });
     });
 }
 /** Given list of shows, create markup for each and to DOM */
 function populateShows(shows) {
-    return __awaiter(this, void 0, void 0, function () {
-        var _i, shows_1, show, $show;
-        return __generator(this, function (_a) {
-            $showsList.empty();
-            for (_i = 0, shows_1 = shows; _i < shows_1.length; _i++) {
-                show = shows_1[_i];
-                $show = $("<div data-show-id=\"".concat(show.id, "\" class=\"Show col-md-12 col-lg-6 mb-4\">\n         <div class=\"media\">\n           <img\n              src=\"http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg\"\n              alt=\"Bletchly Circle San Francisco\"\n              class=\"w-25 me-3\">\n           <div class=\"media-body\">\n             <h5 class=\"text-primary\">").concat(show.name, "</h5>\n             <div><small>").concat(show.summary, "</small></div>\n             <button class=\"btn btn-outline-light btn-sm Show-getEpisodes\">\n               Episodes\n             </button>\n           </div>\n         </div>\n       </div>\n      "));
-                $showsList.append($show);
-            }
-            return [2 /*return*/];
-        });
-    });
+    $showsList.empty();
+    for (var _i = 0, shows_1 = shows; _i < shows_1.length; _i++) {
+        var show = shows_1[_i];
+        var $show = $("<div data-show-id=\"".concat(show.id, "\" class=\"Show col-md-12 col-lg-6 mb-4\">\n         <div class=\"media\">\n           <img\n              src=\"http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg\"\n              alt=\"Bletchly Circle San Francisco\"\n              class=\"w-25 me-3\">\n           <div class=\"media-body\">\n             <h5 class=\"text-primary\">").concat(show.name, "</h5>\n             <div><small>").concat(show.summary, "</small></div>\n             <button class=\"btn btn-outline-light btn-sm Show-getEpisodes\">\n               Episodes\n             </button>\n           </div>\n         </div>\n       </div>\n      "));
+        $showsList.append($show);
+    }
 }
 /** Handle search form submission: get shows from API and display.
  *    Hide episodes area (that only gets shown if they ask for episodes)
