@@ -7,6 +7,13 @@ const $showsList = $("#showsList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
 
+interface ShowObjectInterface {
+  id: number;
+  name: string;
+  summary: string;
+  image: string;
+}
+
 
 /** Given a search term, search for tv shows that match that query.
  *
@@ -15,7 +22,7 @@ const $searchForm = $("#searchForm");
  *    (if no image URL given by API, put in a default image URL)
  */
 
-async function searchShowsByTerm(term) {
+async function searchShowsByTerm(term: string | undefined): Promise<ShowObjectInterface[]> {
   // ADD: Remove placeholder & make request to TVMaze search shows API.
   return [
     {
@@ -40,7 +47,7 @@ async function searchShowsByTerm(term) {
 
 /** Given list of shows, create markup for each and to DOM */
 
-function populateShows(shows) {
+async function populateShows(shows: ShowObjectInterface[]) {
   $showsList.empty();
 
   for (let show of shows) {
