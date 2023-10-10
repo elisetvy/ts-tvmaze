@@ -1,4 +1,3 @@
-import axios from "axios";
 import jQuery from 'jquery';
 
 const TV_MAZE_BASE_URL = "https://api.tvmaze.com";
@@ -18,62 +17,62 @@ interface ShowObjectInterface {
   image: string;
 }
 
-interface ShowDataInterface {
-  score: number;
-  show: {
-    id: number;
-    url: string;
-    name: string;
-    type: string;
-    language: string;
-    genres: string[];
-    status: string;
-    runtime: number;
-    averageRuntime: number;
-    premiered: string;
-    ended: string;
-    officialSite: string;
-    schedule: {
-      time: string;
-      days: string[];
-    };
-    rating: {
-      average: number;
-    };
-    weight: number;
-    network: {
-      id: number;
-      name: string;
-      country: {
-        name: string;
-        code: string;
-        timezone: string;
-      };
-      officialSite: string;
-    };
-    webChannel: null;
-    dvdCountry: null;
-    externals: {
-      tvrage: number;
-      thetvdb: number;
-      imdb: string;
-    };
-    image: {
-      medium: string;
-      original: string;
-    };
-    summary: string;
-    updated: number;
-    _links: {
-      self: {
-        href: string;
-      };
-      previousepisode: {
-        href: string;
-      };
-    };
-  };
-}
+// interface ShowDataInterface {
+//   score: number;
+//   show: {
+//     id: number;
+//     url: string;
+//     name: string;
+//     type: string;
+//     language: string;
+//     genres: string[];
+//     status: string;
+//     runtime: number;
+//     averageRuntime: number;
+//     premiered: string;
+//     ended: string;
+//     officialSite: string;
+//     schedule: {
+//       time: string;
+//       days: string[];
+//     };
+//     rating: {
+//       average: number;
+//     };
+//     weight: number;
+//     network: {
+//       id: number;
+//       name: string;
+//       country: {
+//         name: string;
+//         code: string;
+//         timezone: string;
+//       };
+//       officialSite: string;
+//     };
+//     webChannel: null;
+//     dvdCountry: null;
+//     externals: {
+//       tvrage: number;
+//       thetvdb: number;
+//       imdb: string;
+//     };
+//     image: {
+//       medium: string;
+//       original: string;
+//     };
+//     summary: string;
+//     updated: number;
+//     _links: {
+//       self: {
+//         href: string;
+//       };
+//       previousepisode: {
+//         href: string;
+//       };
+//     };
+//   };
+// }
 
 interface EpisodeDataInterface {
   id: number;
@@ -108,6 +107,14 @@ interface EpisodeObjectInterface {
   number: number;
 }
 
+interface ShowDataInterface {
+  show: {
+    id: number,
+    name: string,
+    summary: string,
+    image: { medium: string; } | null,
+  };
+}
 
 /** Given a search term, search for tv shows that match that query.
  *
@@ -117,17 +124,17 @@ interface EpisodeObjectInterface {
  */
 
 async function searchShowsByTerm(term: string): Promise<ShowObjectInterface[]> {
-  // ADD: Remove placeholder & make request to TVMaze search shows API.
   const response = await fetch(`${TV_MAZE_BASE_URL}/search/shows?q=${term}`);
 
   const data = await response.json() as ShowDataInterface[];
 
   const showsArr = data.map(show => {
+
     const showObject: ShowObjectInterface = {
       id: show.show.id,
       name: show.show.name,
       summary: show.show.summary,
-      image: show.show.image?.original || DEFAULT_IMAGE
+      image: show.show.image?.medium || DEFAULT_IMAGE
     };
     return showObject;
   });
@@ -137,7 +144,7 @@ async function searchShowsByTerm(term: string): Promise<ShowObjectInterface[]> {
 
 
 /** Given list of shows, create markup for each and to DOM */
-
+//TODO: don't need to return void here
 function populateShows(shows: ShowObjectInterface[]): void {
   $showsList.empty();
 
@@ -194,8 +201,7 @@ $searchForm.on("submit", async function (evt) {
 
 async function getEpisodesOfShow(id: string) {
   const response = await fetch(`${TV_MAZE_BASE_URL}/shows/${id}/episodes`);
-
-  const data = await response.json() as EpisodeDataInterface[];
+  const data = await response.json() as EpisodeObjectInterface[];
 
   const episodeArr = data.map(episode => {
     const episodeObject: EpisodeObjectInterface = {
@@ -210,8 +216,8 @@ async function getEpisodesOfShow(id: string) {
   return episodeArr;
 }
 
-/** Write a clear docstring for this function... */
-
+/** Given list of episodes, create li for each episode, append to ul */
+//TODO: Don't need to return void
 function populateEpisodes(episodes: EpisodeObjectInterface[]): void {
 
   $episodesArea.empty();
@@ -228,12 +234,18 @@ function populateEpisodes(episodes: EpisodeObjectInterface[]): void {
   $episodesArea.show();
 }
 
+/**
+ * Recieves target from click event, gets show id from parent element,
+ * requests episodes based on id, calls populateEpisodes to append to the dom
+ *
+ */
 async function getEpisodesAndDisplay(target: EventTarget) {
   const showId = $(target).closest('.Show').attr('data-show-id') as string;
   const episodes = await getEpisodesOfShow(showId);
-  populateEpisodes(episodes)
+  populateEpisodes(episodes);
 }
 
+/** On click of episodes button, gets event target to identify episode */
 $showsList.on("click", ".Show-getEpisodes",
   async function handleClick(evt: JQuery.ClickEvent): Promise<void> {
     evt.preventDefault();

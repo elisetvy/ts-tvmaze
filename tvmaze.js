@@ -10806,7 +10806,7 @@ function searchShowsByTerm(term) {
                             id: show.show.id,
                             name: show.show.name,
                             summary: show.show.summary,
-                            image: ((_a = show.show.image) === null || _a === void 0 ? void 0 : _a.original) || DEFAULT_IMAGE
+                            image: ((_a = show.show.image) === null || _a === void 0 ? void 0 : _a.medium) || DEFAULT_IMAGE
                         };
                         return showObject;
                     });
@@ -10816,6 +10816,7 @@ function searchShowsByTerm(term) {
     });
 }
 /** Given list of shows, create markup for each and to DOM */
+//TODO: don't need to return void here
 function populateShows(shows) {
     $showsList.empty();
     for (var _i = 0, shows_1 = shows; _i < shows_1.length; _i++) {
@@ -10889,7 +10890,8 @@ function getEpisodesOfShow(id) {
         });
     });
 }
-/** Write a clear docstring for this function... */
+/** Given list of episodes, create li for each episode, append to ul */
+//TODO: Don't need to return void
 function populateEpisodes(episodes) {
     $episodesArea.empty();
     for (var _i = 0, episodes_1 = episodes; _i < episodes_1.length; _i++) {
@@ -10899,6 +10901,11 @@ function populateEpisodes(episodes) {
     }
     $episodesArea.show();
 }
+/**
+ * Recieves target from click event, gets show id from parent element,
+ * requests episodes based on id, calls populateEpisodes to append to the dom
+ *
+ */
 function getEpisodesAndDisplay(target) {
     return __awaiter(this, void 0, void 0, function () {
         var showId, episodes;
@@ -10915,6 +10922,7 @@ function getEpisodesAndDisplay(target) {
         });
     });
 }
+/** On click of episodes button, gets event target to identify episode */
 $showsList.on("click", ".Show-getEpisodes", function handleClick(evt) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
