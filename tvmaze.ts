@@ -10,6 +10,7 @@ const $showsList = $("#showsList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
 
+
 interface ShowObjectInterface {
   id: number;
   name: string;
@@ -19,7 +20,7 @@ interface ShowObjectInterface {
 
 interface ShowDataInterface {
   score: number;
-  show:  {
+  show: {
     id: number;
     url: string;
     name: string;
@@ -47,7 +48,7 @@ interface ShowDataInterface {
         name: string;
         code: string;
         timezone: string;
-      }
+      };
       officialSite: string;
     };
     webChannel: null;
@@ -55,7 +56,7 @@ interface ShowDataInterface {
     externals: {
       tvrage: number;
       thetvdb: number;
-      imdb: string
+      imdb: string;
     };
     image: {
       medium: string;
@@ -69,9 +70,42 @@ interface ShowDataInterface {
       };
       previousepisode: {
         href: string;
-      }
+      };
     };
-  }
+  };
+}
+
+interface EpisodeDataInterface {
+  id: number;
+  url: string;
+  name: string;
+  season: number;
+  number: number;
+  type: string;
+  airdate: string;
+  airtime: string;
+  airstamp: string;
+  runtime: number;
+  rating: {
+    average: null;
+  };
+  image: null;
+  summary: string;
+  _links: {
+    self: {
+      href: string;
+    };
+    show: {
+      href: string;
+    };
+  };
+}
+
+interface EpisodeObjectInterface {
+  id: number;
+  name: string;
+  season: number;
+  number: number;
 }
 
 
@@ -90,11 +124,11 @@ async function searchShowsByTerm(term: string): Promise<ShowObjectInterface[]> {
 
   const showsArr = data.map(show => {
     const showObject: ShowObjectInterface = {
-    id: show.show.id,
-    name: show.show.name,
-    summary: show.show.summary,
-    image: show.show.image?.original || DEFAULT_IMAGE
-    }
+      id: show.show.id,
+      name: show.show.name,
+      summary: show.show.summary,
+      image: show.show.image?.original || DEFAULT_IMAGE
+    };
     return showObject;
   });
 
@@ -112,7 +146,7 @@ function populateShows(shows: ShowObjectInterface[]): void {
       `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
            <img
-              src="http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg"
+              src=${show.image}
               alt="Bletchly Circle San Francisco"
               class="w-25 me-3">
            <div class="media-body">
@@ -158,8 +192,45 @@ $searchForm.on("submit", async function (evt) {
  *      { id, name, season, number }
  */
 
-// async function getEpisodesOfShow(id) { }
+async function getEpisodesOfShow(id: number) {
+  const response = await fetch(`${TV_MAZE_BASE_URL}shows/${id}/episodes`);
+
+  const data = await response.json() as EpisodeDataInterface[];
+
+  const episodeArr = data.map(episode => {
+    const episodeObject: EpisodeObjectInterface = {
+      id: episode.id,
+      name: episode.name,
+      season: episode.season,
+      number: episode.number
+    };
+    return episodeObject;
+  });
+
+  return episodeArr;
+}
 
 /** Write a clear docstring for this function... */
 
-// function populateEpisodes(episodes) { }
+function populateEpisodes(episodes: EpisodeObjectInterface[]): void {
+
+  $episodesArea.empty();
+
+  for (let episode of episodes) {
+    const $episode =
+      `<li>
+    ${episode.name}
+    (season: ${episode.season}, episode number: ${episode.number})
+    <li>`;
+    $episodesArea.append($episode);
+  }
+
+}
+
+$showsList.on("click", ".Show-getEpisodes",
+  function handleClick(evt: JQuery.ClickEvent): void {
+    //TODO: get id from parent element, evt.target.closest?, pass into
+    //getEpisodeOfShow
+    const episodes = await getEpisodesOfShow();
+  }
+);
