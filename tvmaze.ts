@@ -147,7 +147,7 @@ function populateShows(shows: ShowObjectInterface[]): void {
          <div class="media">
            <img
               src=${show.image}
-              alt="Bletchly Circle San Francisco"
+              alt="show image"
               class="w-25 me-3">
            <div class="media-body">
              <h5 class="text-primary">${show.name}</h5>
@@ -192,8 +192,8 @@ $searchForm.on("submit", async function (evt) {
  *      { id, name, season, number }
  */
 
-async function getEpisodesOfShow(id: number) {
-  const response = await fetch(`${TV_MAZE_BASE_URL}shows/${id}/episodes`);
+async function getEpisodesOfShow(id: string) {
+  const response = await fetch(`${TV_MAZE_BASE_URL}/shows/${id}/episodes`);
 
   const data = await response.json() as EpisodeDataInterface[];
 
@@ -225,12 +225,18 @@ function populateEpisodes(episodes: EpisodeObjectInterface[]): void {
     $episodesArea.append($episode);
   }
 
+  $episodesArea.show();
+}
+
+async function getEpisodesAndDisplay(target: EventTarget) {
+  const showId = $(target).closest('.Show').attr('data-show-id') as string;
+  const episodes = await getEpisodesOfShow(showId);
+  populateEpisodes(episodes)
 }
 
 $showsList.on("click", ".Show-getEpisodes",
-  function handleClick(evt: JQuery.ClickEvent): void {
-    //TODO: get id from parent element, evt.target.closest?, pass into
-    //getEpisodeOfShow
-    const episodes = await getEpisodesOfShow();
+  async function handleClick(evt: JQuery.ClickEvent): Promise<void> {
+    evt.preventDefault();
+    await getEpisodesAndDisplay(evt.target);
   }
 );
